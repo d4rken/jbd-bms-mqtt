@@ -2,10 +2,11 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <SPI.h>
-#include <Wire.h>
 #include <SoftwareSerial.h>
-#include "JbdBms.h"
 #include <Ticker.h>
+#include <Wire.h>
+
+#include "JbdBms.h"
 
 Ticker ticker;
 
@@ -49,42 +50,48 @@ void updateSystemStats() {
 }
 
 void updateBMSData() {
-  if (myBms.readBmsData() == true) {
-        Serial.print("This capacity: ");
-        Serial.println(myBms.getChargePercentage());
-        Serial.print("Current: ");
-        Serial.println(myBms.getCurrent());
-        Serial.print("Voltage: ");
-        Serial.println(myBms.getVoltage());
-        Serial.print("Protection state: ");
-        Serial.println(myBms.getProtectionState());
-        Serial.print("Cycle: ");
-        Serial.println(myBms.getCycle());
-        Serial.print("Temp1: ");
-        Serial.println(myBms.getTemp1());
-        Serial.print("Temp2: ");
-        Serial.println(myBms.getTemp2());
-        Serial.print("Temp3: ");
-        Serial.println(myBms.getTemp3());
+    if (myBms.readBmsData() == true) {
+        Serial.println("### START: Basic BMS data ###");
 
-        Serial.println();
+        float chargePercentage = myBms.getChargePercentage();
+        Serial.println("This capacity: " + String(chargePercentage));
+
+        float current = myBms.getCurrent();
+        Serial.println("Current: " + String(current));
+
+        float voltage = myBms.getVoltage();
+        Serial.println("Voltage: " + String(voltage));
+
+        uint16_t protectionStation = myBms.getProtectionState();
+        Serial.println("Protection state: " + String(protectionStation));
+
+        uint16_t cycleCount = (myBms.getCycle());
+        Serial.println("Cycle: " + String(cycleCount));
+
+        float tempInternal = myBms.getTemp1();
+        Serial.println("Temp internal: " + String(tempInternal));
+
+        float tempProbe1 = myBms.getTemp2();
+        Serial.println("Temp probe 1: " + String(tempProbe1));
+
+        float tempProbe2 = myBms.getTemp3();
+        Serial.println("Temp probe 2: " + String(tempProbe2));
+
+        Serial.println("### END: Basic BMS data ###");
     } else {
-        Serial.println("Communication error");
+        Serial.println("Communication error while getting basic BMS data");
     }
     delay(3000);
     if (myBms.readPackData() == true) {
+        Serial.println("### START: Battery cell data ###");
+
         packCellInfoStruct packInfo = myBms.getPackCellInfo();
 
-        Serial.print("Number Of Cell: ");
-        Serial.println(packInfo.NumOfCells);
-        Serial.print("Low: ");
-        Serial.println(packInfo.CellLow);
-        Serial.print("High: ");
-        Serial.println(packInfo.CellHigh);
-        Serial.print("Diff: ");
-        Serial.println(packInfo.CellDiff);
-        Serial.print("Avg: ");
-        Serial.println(packInfo.CellAvg);
+        Serial.println("Number Of Cell: " + String(packInfo.NumOfCells));
+        Serial.println("Low: " + String(packInfo.CellLow));
+        Serial.println("High: " + String(packInfo.CellHigh));
+        Serial.println("Diff: " + String(packInfo.CellDiff));
+        Serial.println("Avg: " + String(packInfo.CellAvg));
 
         // go trough individual cells
         for (byte i = 0; i < packInfo.NumOfCells; i++) {
@@ -93,9 +100,10 @@ void updateBMSData() {
             Serial.print(": ");
             Serial.println(packInfo.CellVoltage[i]);
         }
-        Serial.println();
+
+        Serial.println("### END: Battery cell data ###");
     } else {
-        Serial.println("Communication error");
+        Serial.println("Communication error while getting cell data");
     }
 }
 
