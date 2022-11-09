@@ -4,6 +4,8 @@
  * \version 0.3
  * \date September 2019
  * https://github.com/rahmaevao/JbdBms/commit/831f9186d93d02b18e2886764bd58ab8fd5e7546
+ *
+ * Modified by @d4rken to work with JBD BMS AP21S001
  */
 
 #include "JbdBms.h"
@@ -87,17 +89,24 @@ uint16_t JbdBms::getCycle(){
 
 
 /**
- * \External Temp Probe
+ * \Onboard Temp Probe
  */
 float JbdBms::getTemp1() {
   return m_Temp1;
 }
 
 /**
- * \Onboard Temp
+ * \External Temp Probe 1
  */
 float JbdBms::getTemp2() {
   return m_Temp2;
+}
+
+/**
+ * \External Temp Probe 2
+ */
+float JbdBms::getTemp3() {
+  return m_Temp3;
 }
 
 packCellInfoStruct JbdBms::getPackCellInfo() {
@@ -122,7 +131,7 @@ void JbdBms::parseReqBasicMessage(uint8_t * t_message) {
   m_cycle = ((float)convertTwoIntsToUint16(t_message[12], t_message[13]));
   m_Temp1 = (((float)convertTwoIntsToUint16(t_message[27], t_message[28])) - 2731) / 10.00f;
   m_Temp2 = (((float)convertTwoIntsToUint16(t_message[29], t_message[30])) - 2731) / 10.00f;
-  
+  m_Temp3 = (((float)convertTwoIntsToUint16(t_message[31], t_message[32])) - 2731) / 10.00f;
 }
 
 void JbdBms::parseReqPackMessage(uint8_t * t_message){ //packCellInfoStruct * t_packCellInfo) {
@@ -178,6 +187,7 @@ bool JbdBms::readResponce(uint8_t *t_outMessage)
       if (findBeginByte)
       {
         t_outMessage[i] = thisByte;
+        //Serial.println(String(i)+"=" + String(thisByte));
         i++;
       }
     }

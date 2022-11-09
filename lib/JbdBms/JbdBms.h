@@ -3,6 +3,9 @@
  * \author rahmaevao
  * \version 0.3
  * \date September 2019
+ * https://github.com/rahmaevao/JbdBms/commit/831f9186d93d02b18e2886764bd58ab8fd5e7546
+ *
+ * Modified by @d4rken to work with JBD BMS AP21S001
  */
 
 #ifndef JBD_BMS_HPP_
@@ -11,7 +14,7 @@
 #include "Arduino.h"
 #include <SoftwareSerial.h>
 
-#define BMS_LEN_RESPONCE 36
+#define BMS_LEN_RESPONCE 45
 /* \defgroup BMS_STATUS BMS protection status masks
 *  @{
 */
@@ -73,6 +76,7 @@ public:
   uint16_t getCycle();
   float getTemp1();
   float getTemp2();
+  float getTemp3();
   packCellInfoStruct getPackCellInfo();
 
 private:
@@ -85,6 +89,7 @@ private:
   uint16_t m_cycle = 0;
   float m_Temp1 = 0;
   float m_Temp2 = 0;
+  float m_Temp3 = 0;
 
   packCellInfoStruct m_packCellInfo = {0};
 
