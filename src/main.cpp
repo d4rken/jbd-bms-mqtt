@@ -36,7 +36,7 @@ void setup() {
 
     Serial.println("Setting up WIFI" + String(SSID));
     WiFi.setAutoReconnect(true);
-    WiFi.hostname("Weather-Station-Outdoor");
+    WiFi.hostname("PV1-BMS1-ESP8266");
     WiFi.begin(SSID, PSK);
 
     client.setServer(MQTT_BROKER, 1883);
@@ -44,9 +44,17 @@ void setup() {
     pinMode(A0, INPUT);
 }
 
+char itoaBuf[64];
+char dtostrfBuf[64];
+
 void updateSystemStats() {
     long rssi = WiFi.RSSI();
     Serial.println("RSSI: " + String(rssi));
+    client.publish("pv1/bms1/rssi", itoa(rssi, itoaBuf, 10));
+
+    unsigned long uptime = millis();
+    Serial.println("Uptime: " + String(uptime));
+    client.publish("pv1/bms1/uptime", itoa(uptime, itoaBuf, 10));
 }
 
 void updateBMSData() {
@@ -54,51 +62,68 @@ void updateBMSData() {
         Serial.println("### START: Basic BMS data ###");
 
         float chargePercentage = myBms.getChargePercentage();
-        Serial.println("This capacity: " + String(chargePercentage));
+        Serial.println("Charge percentage capacity: " + String(chargePercentage));
+        client.publish("pv1/bms1/charge", dtostrf(chargePercentage, 2, 2, dtostrfBuf));
 
         float current = myBms.getCurrent();
         Serial.println("Current: " + String(current));
+        client.publish("pv1/bms1/current", itoa(current, itoaBuf, 10));
 
         float voltage = myBms.getVoltage();
         Serial.println("Voltage: " + String(voltage));
+        client.publish("pv1/bms1/voltage", dtostrf(voltage, 2, 2, dtostrfBuf));
 
-        uint16_t protectionStation = myBms.getProtectionState();
-        Serial.println("Protection state: " + String(protectionStation));
+        uint16_t protectionState = myBms.getProtectionState();
+        Serial.println("Protection state: " + String(protectionState));
+        client.publish("pv1/bms1/protection-state", itoa(protectionState, itoaBuf, 10));
 
         uint16_t cycleCount = (myBms.getCycle());
         Serial.println("Cycle: " + String(cycleCount));
+        client.publish("pv1/bms1/cycle-count", itoa(cycleCount, itoaBuf, 10));
 
         float tempInternal = myBms.getTemp1();
         Serial.println("Temp internal: " + String(tempInternal));
+        client.publish("pv1/bms1/temp-internal", dtostrf(tempInternal, 2, 2, dtostrfBuf));
 
         float tempProbe1 = myBms.getTemp2();
         Serial.println("Temp probe 1: " + String(tempProbe1));
+        client.publish("pv1/bms1/temp-probe1", dtostrf(tempProbe1, 2, 2, dtostrfBuf));
 
         float tempProbe2 = myBms.getTemp3();
         Serial.println("Temp probe 2: " + String(tempProbe2));
+        client.publish("pv1/bms1/temp-probe2", dtostrf(tempProbe2, 2, 2, dtostrfBuf));
 
         Serial.println("### END: Basic BMS data ###");
     } else {
         Serial.println("Communication error while getting basic BMS data");
     }
-    delay(3000);
+    
+    delay(1000);
+    
     if (myBms.readPackData() == true) {
         Serial.println("### START: Battery cell data ###");
 
         packCellInfoStruct packInfo = myBms.getPackCellInfo();
 
         Serial.println("Number Of Cell: " + String(packInfo.NumOfCells));
+        client.publish("pv1/bms1/cells/count", itoa(packInfo.NumOfCells, itoaBuf, 10));
+
         Serial.println("Low: " + String(packInfo.CellLow));
+        client.publish("pv1/bms1/cells/low", itoa(packInfo.CellLow, itoaBuf, 10));
+
         Serial.println("High: " + String(packInfo.CellHigh));
+        client.publish("pv1/bms1/cells/high", itoa(packInfo.CellHigh, itoaBuf, 10));
+
         Serial.println("Diff: " + String(packInfo.CellDiff));
+        client.publish("pv1/bms1/cells/diff", itoa(packInfo.CellDiff, itoaBuf, 10));
+
         Serial.println("Avg: " + String(packInfo.CellAvg));
+        client.publish("pv1/bms1/cells/avg", itoa(packInfo.CellAvg, itoaBuf, 10));
 
         // go trough individual cells
         for (byte i = 0; i < packInfo.NumOfCells; i++) {
-            Serial.print("Cell");
-            Serial.print(i + 1);
-            Serial.print(": ");
-            Serial.println(packInfo.CellVoltage[i]);
+            Serial.println("Cell #" + String(i + 1) + ": " + packInfo.CellVoltage[i]);
+            client.publish(("pv1/bms1/cells/cell" + String(i + 1)).c_str(), itoa(packInfo.CellVoltage[i], itoaBuf, 10));
         }
 
         Serial.println("### END: Battery cell data ###");
@@ -133,7 +158,7 @@ void loop() {
     int retryMqtt = 0;
     while (wifiConnected && !client.connected()) {
         Serial.println("Connecting to MQTT broker...");
-        client.connect("JBD-BMS-1");
+        client.connect("BMS-JBD-1");
         if (retryMqtt > 3) {
             mqttConnected = false;
             break;
@@ -155,16 +180,19 @@ void loop() {
     }
 
     ticker.detach();
-    digitalWrite(BUILTIN_LED, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
 
     Serial.println("Wifi and MQTT ready");
 
+    delay(2000);
+
     updateSystemStats();
+
     updateBMSData();
 
     client.loop();
 
     Serial.println("Loop end");
 
-    delay(5000);
+    delay(7000);
 }
