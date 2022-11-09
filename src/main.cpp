@@ -194,5 +194,5 @@ void loop() {
 
     Serial.println("Loop end");
 
-    delay(7000);
+    delay(27000);
 }
