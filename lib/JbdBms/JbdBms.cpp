@@ -156,7 +156,7 @@ bool JbdBms::readResponce(uint8_t *t_outMessage) {
             }
             if (findBeginByte) {
                 t_outMessage[i] = thisByte;
-                Serial.println(String(i) + "=" + String(thisByte));
+                // Serial.println(String(i)+"=" + String(thisByte));
                 i++;
             }
         }
