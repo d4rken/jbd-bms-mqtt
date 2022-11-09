@@ -3,11 +3,10 @@
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <Wire.h>
-
+#include <SoftwareSerial.h>
 #include "JbdBms.h"
-
-// for LED status
 #include <Ticker.h>
+
 Ticker ticker;
 
 const char *SSID = WIFI_SSID;
@@ -17,6 +16,9 @@ const char *MQTT_BROKER_IP = MQTT_SERVER_IP;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+
+SoftwareSerial mySerial(D2, D1);
+JbdBms myBms(&mySerial);
 
 void tick() {
     // toggle state
@@ -46,32 +48,54 @@ void updateSystemStats() {
     Serial.println("RSSI: " + String(rssi));
 }
 
-JbdBms myBms(21,22);
-unsigned long SerialLastLoad = 0;
-packCellInfoStruct cellInfo;
-float BatteryTemp1, BatteryTemp2, BatteryChargePercetage, BatteryCurrent,
-    BatteryVoltage;
-int BatterycycleCount;
-
 void updateBMSData() {
-    if (myBms.readBmsData() == true) {
-        Serial.println("BMS data was read successfully");
+  if (myBms.readBmsData() == true) {
+        Serial.print("This capacity: ");
+        Serial.println(myBms.getChargePercentage());
+        Serial.print("Current: ");
+        Serial.println(myBms.getCurrent());
+        Serial.print("Voltage: ");
+        Serial.println(myBms.getVoltage());
+        Serial.print("Protection state: ");
+        Serial.println(myBms.getProtectionState());
+        Serial.print("Cycle: ");
+        Serial.println(myBms.getCycle());
+        Serial.print("Temp1: ");
+        Serial.println(myBms.getTemp1());
+        Serial.print("Temp2: ");
+        Serial.println(myBms.getTemp2());
+        Serial.print("Temp3: ");
+        Serial.println(myBms.getTemp3());
 
-        BatteryTemp1 = myBms.getTemp1();
-        Serial.println("BatteryTemp1:");
-        Serial.println(BatteryTemp1);
-
-        BatteryCurrent = myBms.getCurrent() / 1000.0f;
-        BatteryChargePercetage = myBms.getChargePercentage();
-        
-        BatteryTemp2 = myBms.getTemp2();
-        BatterycycleCount = myBms.getCycle();
-        BatteryVoltage = myBms.getVoltage();
-        if (myBms.readPackData() == true) {
-            cellInfo = myBms.getPackCellInfo();
-        }
+        Serial.println();
     } else {
-        Serial.println("BMS data was read successfully");
+        Serial.println("Communication error");
+    }
+    delay(3000);
+    if (myBms.readPackData() == true) {
+        packCellInfoStruct packInfo = myBms.getPackCellInfo();
+
+        Serial.print("Number Of Cell: ");
+        Serial.println(packInfo.NumOfCells);
+        Serial.print("Low: ");
+        Serial.println(packInfo.CellLow);
+        Serial.print("High: ");
+        Serial.println(packInfo.CellHigh);
+        Serial.print("Diff: ");
+        Serial.println(packInfo.CellDiff);
+        Serial.print("Avg: ");
+        Serial.println(packInfo.CellAvg);
+
+        // go trough individual cells
+        for (byte i = 0; i < packInfo.NumOfCells; i++) {
+            Serial.print("Cell");
+            Serial.print(i + 1);
+            Serial.print(": ");
+            Serial.println(packInfo.CellVoltage[i]);
+        }
+        Serial.println();
+    } else {
+        Serial.println("Communication error");
     }
 }
 
