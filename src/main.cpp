@@ -20,15 +20,15 @@ PubSubClient client(espClient);
 
 void tick() {
     // toggle state
-    int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
-    digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+    int state = digitalRead(LED_BUILTIN);  // get the current state of GPIO1 pin
+    digitalWrite(LED_BUILTIN, !state);     // set pin to the opposite state
 }
 
 void setup() {
     Serial.begin(74880);
     Serial.println("Setup...");
 
-    pinMode(BUILTIN_LED, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
     ticker.attach(0.6, tick);
 
     Serial.println("Setting up WIFI" + String(SSID));
