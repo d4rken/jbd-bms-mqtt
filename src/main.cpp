@@ -58,6 +58,7 @@ void updateSystemStats() {
 }
 
 void updateBMSData() {
+    delay(1000);
     if (myBms.readBmsData() == true) {
         Serial.println("### START: Basic BMS data ###");
 
@@ -196,5 +197,5 @@ void loop() {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Loop end");
 
-    delay(27000);
+    delay(25000);
 }
