@@ -58,8 +58,17 @@ void updateSystemStats() {
 }
 
 void updateBMSData() {
-    delay(1000);
-    if (myBms.readBmsData() == true) {
+    int attempts = 0;
+
+    bool hasBmsData = false;
+    while (!hasBmsData) {
+        if (attempts > 8) break;
+        Serial.println("Trying for bms data");
+        hasBmsData = myBms.readBmsData();
+        delay(200);
+        attempts++;
+    }
+    if (hasBmsData) {
         Serial.println("### START: Basic BMS data ###");
 
         float chargePercentage = myBms.getChargePercentage();
@@ -99,9 +108,17 @@ void updateBMSData() {
         Serial.println("Communication error while getting basic BMS data");
     }
 
-    delay(1000);
+    attempts = 0;
 
-    if (myBms.readPackData() == true) {
+    bool hasPackData = false;
+    while (!hasPackData) {
+        if (attempts > 8) break;
+        Serial.println("Trying for pack data");
+        hasPackData = myBms.readPackData();
+        delay(200);
+        attempts++;
+    }
+    if (hasPackData) {
         Serial.println("### START: Battery cell data ###");
 
         packCellInfoStruct packInfo = myBms.getPackCellInfo();
@@ -188,14 +205,14 @@ void loop() {
 
     delay(2000);
 
-    updateSystemStats();
-
     updateBMSData();
+
+    updateSystemStats();
 
     client.loop();
 
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Loop end");
 
-    delay(25000);
+    delay(27000);
 }
