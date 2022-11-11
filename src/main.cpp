@@ -97,9 +97,9 @@ void updateBMSData() {
     } else {
         Serial.println("Communication error while getting basic BMS data");
     }
-    
+
     delay(1000);
-    
+
     if (myBms.readPackData() == true) {
         Serial.println("### START: Battery cell data ###");
 
@@ -134,6 +134,7 @@ void updateBMSData() {
 
 void loop() {
     Serial.println("Loop start");
+    digitalWrite(LED_BUILTIN, LOW);
 
     bool wifiConnected = true;
     int retryWifi = 0;
@@ -192,6 +193,7 @@ void loop() {
 
     client.loop();
 
+    digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Loop end");
 
     delay(27000);
