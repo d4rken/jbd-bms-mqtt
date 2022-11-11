@@ -205,9 +205,9 @@ void loop() {
 
     delay(2000);
 
-    updateBMSData();
-
     updateSystemStats();
+
+    updateBMSData();
 
     client.loop();
 
