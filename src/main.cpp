@@ -54,7 +54,7 @@ void updateSystemStats() {
 
     unsigned long uptime = millis();
     Serial.println("Uptime: " + String(uptime));
-    client.publish("pv1/bms1/uptime", itoa(uptime, itoaBuf, 10));
+    client.publish("pv1/bms1/uptime", ultoa(uptime, itoaBuf, 10));
 }
 
 void updateBMSData() {
